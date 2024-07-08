@@ -1,22 +1,20 @@
-#include <Servo.h>
+
 #include <HCSR04.h>
 #include <Pixy2.h>
 
 int MotorPin1 = 3; // control with the l298n
-int MotorPin2 = 4;
-int ServoPin = 12; // pin of the servo motor
+int MotorPin2 = 2;
 
 // Define the pins for the ultrasonic sensors
 int LeftSensorPinTrig =  9;
 int LeftSensorPinEcho =  8;
-
-int RightSensorPinTrig =  10;
-int RightSensorPinEcho =  11;
+int RightSensorPinTrig =  5;
+int RightSensorPinEcho =  4;
 int FrontSensorPinTrig =  7;
 int FrontSensorPinEcho =  6; 
 
 // button pin
-int ButtonPin = 2;
+int ButtonPin = A0;
 
 // Set the max range for the ultrasonic
 int FrontDistanceRange = 35;
@@ -24,21 +22,23 @@ int LeftDistanceRange = 50;
 int RightDistanceRange = 50;
 
 // set the rotation of the servo
-int LeftServoRotation = 180;
+int LeftServoRotation = 800;
 int RightServoRotation = 0;
-int CenterServoRotation = 100;
+int CenterServoRotation = 500;
 // Signature for the pixy cam
 int RedColorSignature = 1;
-int GreenColorSignature = 4;
+int GreenColorSignature = 2;
 
 bool BotInRotation = false;
 bool ButtonPressed = false;
+bool BrickDetected = false;
+bool Debug = true;
 
 HCSR04 LeftSensor (LeftSensorPinTrig, LeftSensorPinEcho);
 HCSR04 RightSensor (RightSensorPinTrig, RightSensorPinEcho);
 HCSR04 FrontSensor (FrontSensorPinTrig, FrontSensorPinEcho);
-Servo servo;
-//Pixy2 pixy;
+
+Pixy2 pixy;
 
 //init the car
 
@@ -54,9 +54,12 @@ void MotorBackward() {
 
 void ServoRotation(int Angle) {
   if (BotInRotation == false) {
-        servo.write(CenterServoRotation);
+    //Position, Rotation
+    pixy.setServos(0, CenterServoRotation);
+   // servo.write(CenterServoRotation);
   }
-  servo.write(Angle);
+  //Position, Rotation
+  pixy.setServos(0, Angle);
   MotorBackward();
 } 
 
@@ -66,75 +69,97 @@ void setup() {
   pinMode(MotorPin1, OUTPUT);
   pinMode(MotorPin2, OUTPUT);
   pinMode(ButtonPin, INPUT);
+  //servo.attach(ServoPin);
    
-  servo.attach(ServoPin);
-  ServoRotation(CenterServoRotation);
+
+  Serial.println("Initializing Pixy2...");
+  int pixyInitStatus = pixy.init();
+  if (pixyInitStatus != 0) {
+    Serial.print("Pixy2 initialization failed with code: ");
+    Serial.println(pixyInitStatus);
+  } else {
+    Serial.println("Pixy2 initialized successfully");
+  }
   Serial.println("Setup Complete");
- // pixy.init(); // enable pixycam
+  ServoRotation(CenterServoRotation);
 }
 
 void loop() {
-    while (ButtonPressed == false) {
-      int buttonState = digitalRead(ButtonPin);
-      delay(50); // debounce delay
-      if (buttonState == LOW) {
-        ButtonPressed = true;
-        Serial.println("Button Pressed");
-      }
+  while (ButtonPressed == false) {
+    int buttonState = analogRead(ButtonPin);
+    delay(50); // debounce delay
+    if (buttonState == LOW) {
+      ButtonPressed = true;
+      Serial.println("Button Pressed");
     }
-  int FrontDistance = FrontSensor.dist() ;
-  int LeftDistance = LeftSensor.dist() ;
-  int RightDistance = RightSensor.dist() ; // get the distance of the ultrasonic sensor
- 
+  }
 
+  int FrontDistance = FrontSensor.dist();
+  int LeftDistance = LeftSensor.dist();
+  int RightDistance = RightSensor.dist(); // get the distance of the ultrasonic sensor
+  
   bool RedBlockDetected = false;
   bool GreenBlockDetected = false;
-   
-  //pixy.ccc.getBlocks();
-  //if (pixy.ccc.numBlocks) {
-    //for (int i = 0; i < pixy.ccc.numBlocks; i++) {
-      //if (pixy.ccc.blocks[i].m_signature == RedColorSignature) {
-        //RedBlockDetected = true;
-      //} /// Camera detecting red
-      //else if (pixy.ccc.blocks[i].m_signature == GreenColorSignature) {
-        //GreenBlockDetected = true;
-     // } /// Camera detecting green
-    //}
-  //}
-    Serial.print("Front Distance: ");
-  Serial.println(FrontDistance);
-  Serial.print("Left Distance: ");
-  Serial.println(LeftDistance);
-   Serial.print("Right Distance: ");
-  Serial.println(RightDistance);
-  if ((RedBlockDetected == true && BotInRotation == false) || 
-      (GreenBlockDetected == true && BotInRotation == false)) {
-    
-    if (RedBlockDetected == true) {
-      ServoRotation(RightServoRotation);
-      Serial.println("Red Block Detected: Rotating Right");
-    } else if (GreenBlockDetected == true) {
-      ServoRotation(LeftServoRotation);
-      Serial.println("Green Block Detected: Rotating Left");
+
+  pixy.ccc.getBlocks();
+  if (pixy.ccc.numBlocks) {
+    for (int i = 0; i < pixy.ccc.numBlocks; i++) {
+      if (pixy.ccc.blocks[i].m_signature == RedColorSignature) {
+        RedBlockDetected = true;
+      } else if (pixy.ccc.blocks[i].m_signature == GreenColorSignature) {
+        GreenBlockDetected = true;
+      }
     }
-    BotInRotation = true;
+  }
+
+  if (Debug == true) {
+    Serial.print("Front Distance: ");
+    Serial.println(FrontDistance);
+    Serial.print("Left Distance: ");
+    Serial.println(LeftDistance);
+    Serial.print("Right Distance: ");
+    Serial.println(RightDistance);
+  
+  }
+
+  if ((RedBlockDetected == true) || (GreenBlockDetected == true)) {
+    if (RedBlockDetected == 1 && BotInRotation == false) {
+      ServoRotation(RightServoRotation);
+      if (Debug == true) {
+        Serial.println("Red Block Detected: Rotating Right");
+      }
+    } else if (GreenBlockDetected == 1 && BotInRotation == false) {
+      ServoRotation(LeftServoRotation);
+      if (Debug == true) {
+        Serial.println("Green Block Detected: Rotating Left");
+      }
+    }
+    BrickDetected = true;
+
+   BotInRotation = true;
 
   } else if (FrontDistance <= FrontDistanceRange && FrontDistance > 0) {
-    
-    Serial.println("Obstacle Detected Ahead");
-    if (LeftDistance > RightDistance && LeftDistance < LeftDistanceRange) {
-      BotInRotation = true;
-       Serial.println("Turning Left");
-      ServoRotation(LeftServoRotation);
-      
-    } // turn to left
-    else if (RightDistance > LeftDistance && RightDistance < RightDistanceRange) {
-      BotInRotation = true;
-      Serial.println("Turning Right");
-     ServoRotation(RightServoRotation);
-       
-    } // turn to right
 
+    if (BrickDetected == true) {
+       BotInRotation = false;
+    }
+
+    if (Debug == true) {
+      Serial.println("Obstacle Detected Ahead");
+    }
+    if (LeftDistance > RightDistance) {
+      BotInRotation = true;
+      if (Debug == true) {
+        Serial.println("Turning Left");
+      }
+      ServoRotation(LeftServoRotation);
+    } else if (RightDistance > LeftDistance) {
+      BotInRotation = true;
+      if (Debug == true) {
+        Serial.println("Turning Right");
+      }
+      ServoRotation(RightServoRotation);
+    }
   } else {
     if (BotInRotation == true) {
       BotInRotation = false;
@@ -142,7 +167,5 @@ void loop() {
       Serial.println("Resuming Forward Motion");
     }
   }
-
-   delay(500);
-  
+ 
 }
