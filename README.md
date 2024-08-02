@@ -35,8 +35,7 @@ The acrylic base broke and had to be glued with a metal sheet
 We almost burned the new motor, with the new battery in one of the tests
 
 **Motivation**
-
-The motivation to participate in the WRO of 2024, was only one, to be able to experiment for the first time and represent the school in the category of future engineers and thus be able to give a base to the future participants of this school to encourage future young people after us to participate and implement robotics in Panama
+The motivation for participating in WRO 2024 was clear and exciting: to experience the robotics competition for the first time and to represent our school in the future engineers category. We want to establish a solid foundation for future participants of our institution, inspiring young people to get involved in robotics and to promote its implementation in Panama.
 
 **Code Explanation**
 
