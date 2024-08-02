@@ -1,19 +1,23 @@
-
+#include <Servo.h>
 #include <HCSR04.h>
 #include <Pixy2.h>
-
-int MotorPin1 = 3; // control with the l298n
-int MotorPin2 = 2;
+// Pins for Motor
+int R_IS = 2;
+int R_EN = 5;
+int R_PWM = 6;
+int L_IS = 3;
+int L_EN = 4;
+int L_PWM = 7;
 
 // Define the pins for the ultrasonic sensors
-int LeftSensorPinTrig =  9;
-int LeftSensorPinEcho =  8;
-int RightSensorPinTrig =  5;
-int RightSensorPinEcho =  4;
-int FrontSensorPinTrig =  7;
-int FrontSensorPinEcho =  6; 
+int LeftSensorPinTrig = 25;
+int LeftSensorPinEcho = 24;
+int RightSensorPinTrig = 22;
+int RightSensorPinEcho = 23;
+int FrontSensorPinTrig = 27;
+int FrontSensorPinEcho = 26;
 
-// button pin
+// Button pin
 int ButtonPin = A0;
 
 // Set the max range for the ultrasonic
@@ -21,151 +25,259 @@ int FrontDistanceRange = 35;
 int LeftDistanceRange = 50;
 int RightDistanceRange = 50;
 
-// set the rotation of the servo
-int LeftServoRotation = 800;
+// ServoMotor
+int ServoPin = 28;
+
+// Set the rotation of the servo
+int LeftServoRotation = 180;
 int RightServoRotation = 0;
-int CenterServoRotation = 500;
-// Signature for the pixy cam
+int CenterServoRotation = 90;
+int YellowServoRotation = 0;
+// Signature for the PixyCam
 int RedColorSignature = 1;
 int GreenColorSignature = 2;
-
-bool BotInRotation = false;
+int YelloColorSignature  = 3;
+int BlueColorSignature =  4;
+// Debug
+bool Debug = false;
+bool ButtonEnabled = true; // Enable or disable button for testing purpose
+bool EnableObstacleChallenge  = true;
+// Conditions
 bool ButtonPressed = false;
-bool BrickDetected = false;
-bool Debug = true;
+bool BotInRotation = false;
+bool BotStopped = false;
+bool YellowPreviuosDetected = false;
+bool ObjectInFront = false;
+bool ObstacleChangelleBotRotated = false; /// define if the bot ready complete the condition of the red or green pilar in the 2er round
+int YellowLinePassed = 0; // Acumulate the yellow line passed (max 12)
 
-HCSR04 LeftSensor (LeftSensorPinTrig, LeftSensorPinEcho);
-HCSR04 RightSensor (RightSensorPinTrig, RightSensorPinEcho);
-HCSR04 FrontSensor (FrontSensorPinTrig, FrontSensorPinEcho);
+int MaxYellowToDetect = 12;
 
+HCSR04 LeftSensor(LeftSensorPinTrig, LeftSensorPinEcho);
+HCSR04 RightSensor(RightSensorPinTrig, RightSensorPinEcho);
+HCSR04 FrontSensor(FrontSensorPinTrig, FrontSensorPinEcho);
+Servo servo;
 Pixy2 pixy;
 
-//init the car
+int DefaultVelocity = 130;
+int VelocityEdge = 255;
+int CurrentVelocity = DefaultVelocity;
+
+int AcumuledAngle = CenterServoRotation;
 
 void MotorForward() {
-  digitalWrite(MotorPin1, HIGH);
-  digitalWrite(MotorPin2, LOW);
+  analogWrite(R_PWM, 0);
+  analogWrite(L_PWM, CurrentVelocity);
 }
 
 void MotorBackward() {
-  digitalWrite(MotorPin1, LOW);
-  digitalWrite(MotorPin2, HIGH);
+  analogWrite(R_PWM, CurrentVelocity);
+  analogWrite(L_PWM, 0);
 }
 
 void ServoRotation(int Angle) {
-  if (BotInRotation == false) {
-    //Position, Rotation
-    pixy.setServos(0, CenterServoRotation);
-   // servo.write(CenterServoRotation);
-  }
-  //Position, Rotation
-  pixy.setServos(0, Angle);
-  MotorBackward();
-} 
+  servo.write(Angle);
+}
 
 void setup() {
-  Serial.begin(9600);
-  Serial.println("Setup Working");
-  pinMode(MotorPin1, OUTPUT);
-  pinMode(MotorPin2, OUTPUT);
+  pinMode(R_IS, OUTPUT);
+  pinMode(R_EN, OUTPUT);
+  pinMode(R_PWM, OUTPUT);
+  pinMode(L_IS, OUTPUT);
+  pinMode(L_EN, OUTPUT);
+  pinMode(L_PWM, OUTPUT);
+  digitalWrite(R_IS, LOW);
+  digitalWrite(L_IS, LOW);
+  digitalWrite(R_EN, HIGH);
+  digitalWrite(L_EN, HIGH);
+  servo.attach(ServoPin);
   pinMode(ButtonPin, INPUT);
-  //servo.attach(ServoPin);
-   
+  Serial.begin(9600);
 
-  Serial.println("Initializing Pixy2...");
-  int pixyInitStatus = pixy.init();
-  if (pixyInitStatus != 0) {
-    Serial.print("Pixy2 initialization failed with code: ");
-    Serial.println(pixyInitStatus);
-  } else {
-    Serial.println("Pixy2 initialized successfully");
-  }
-  Serial.println("Setup Complete");
-  ServoRotation(CenterServoRotation);
+  servo.write(CenterServoRotation);
+
+  // Initialize PID
+  // steeringPID.SetMode(AUTOMATIC);
+  // steeringPID.SetOutputLimits(0, 180);  // Servo range
+
+  // Initialize PixyCam
+  pixy.init();
+  pixy.setLamp(1,0);
+
+  ButtonPressed = false;
+  BotInRotation = false;
+  YellowPreviuosDetected = false;
+  ObjectInFront = false;
+  YellowLinePassed = 0;
+  ObstacleChangelleBotRotated = false;
+
+
 }
 
 void loop() {
-  while (ButtonPressed == false) {
-    int buttonState = analogRead(ButtonPin);
-    delay(50); // debounce delay
-    if (buttonState == LOW) {
-      ButtonPressed = true;
-      Serial.println("Button Pressed");
+
+  if (BotStopped == true) {
+    CurrentVelocity = 0;
+    MotorForward();
+    ServoRotation(CenterServoRotation);
+
+    while (BotStopped == true) {
+      return;
+    }
+
+  }
+
+  if (ButtonEnabled == true) {
+    while (ButtonPressed == false) {
+      int buttonState = 0;
+      buttonState = digitalRead(ButtonPin);
+      if (buttonState == 0) {
+        ButtonPressed = true;
+        Serial.println("Pressed >");
+      }
     }
   }
 
   int FrontDistance = FrontSensor.dist();
   int LeftDistance = LeftSensor.dist();
-  int RightDistance = RightSensor.dist(); // get the distance of the ultrasonic sensor
-  
+  int RightDistance = RightSensor.dist(); // Get the distance of the ultrasonic sensors
+
   bool RedBlockDetected = false;
   bool GreenBlockDetected = false;
-
+  bool YellowLineDetected = false;
+  bool BlueLineDetected = false;
+  bool MargentaDetected = false;
+  // Get the largest object detected by the PixyCam
   pixy.ccc.getBlocks();
   if (pixy.ccc.numBlocks) {
     for (int i = 0; i < pixy.ccc.numBlocks; i++) {
       if (pixy.ccc.blocks[i].m_signature == RedColorSignature) {
         RedBlockDetected = true;
-      } else if (pixy.ccc.blocks[i].m_signature == GreenColorSignature) {
+      }
+      if (pixy.ccc.blocks[i].m_signature == GreenColorSignature) {
         GreenBlockDetected = true;
       }
-    }
-  }
-
-  if (Debug == true) {
-    Serial.print("Front Distance: ");
-    Serial.println(FrontDistance);
-    Serial.print("Left Distance: ");
-    Serial.println(LeftDistance);
-    Serial.print("Right Distance: ");
-    Serial.println(RightDistance);
-  
-  }
-
-  if ((RedBlockDetected == true) || (GreenBlockDetected == true)) {
-    if (RedBlockDetected == 1 && BotInRotation == false) {
-      ServoRotation(RightServoRotation);
-      if (Debug == true) {
-        Serial.println("Red Block Detected: Rotating Right");
+      if (pixy.ccc.blocks[i].m_signature == YelloColorSignature) {
+        YellowLineDetected = true;
       }
-    } else if (GreenBlockDetected == 1 && BotInRotation == false) {
-      ServoRotation(LeftServoRotation);
-      if (Debug == true) {
-        Serial.println("Green Block Detected: Rotating Left");
+
+      if (pixy.ccc.blocks[i].m_signature == BlueColorSignature) {
+        BlueLineDetected = true;
       }
-    }
-    BrickDetected = true;
 
-   BotInRotation = true;
-
-  } else if (FrontDistance <= FrontDistanceRange && FrontDistance > 0) {
-
-    if (BrickDetected == true) {
-       BotInRotation = false;
-    }
-
-    if (Debug == true) {
-      Serial.println("Obstacle Detected Ahead");
-    }
-    if (LeftDistance > RightDistance) {
-      BotInRotation = true;
-      if (Debug == true) {
-        Serial.println("Turning Left");
+       if (pixy.ccc.blocks[i].m_signature == MargentaColorSignature) {
+        MargentaDetected = true;
       }
-      ServoRotation(LeftServoRotation);
-    } else if (RightDistance > LeftDistance) {
-      BotInRotation = true;
-      if (Debug == true) {
-        Serial.println("Turning Right");
-      }
-      ServoRotation(RightServoRotation);
-    }
-  } else {
-    if (BotInRotation == true) {
-      BotInRotation = false;
-      ServoRotation(CenterServoRotation);
-      Serial.println("Resuming Forward Motion");
+
     }
   }
  
+  if (YellowLineDetected == true ) {
+    // Code to handle yellow block detection
+    BotInRotation = true;
+    YellowPreviuosDetected = true;
+    servo.write(YellowServoRotation);
+     CurrentVelocity = VelocityEdge;
+       MotorForward();
+       delay(1100);
+   
+  } else if (RedBlockDetected == true && BotInRotation == false) {
+    // Code to handle red block detection
+    BotInRotation = true;
+    ServoRotation(RightServoRotation);
+     CurrentVelocity = DefaultVelocity;
+    MotorForward();
+  } else if (GreenBlockDetected == true && BotInRotation == false) {
+    // Code to handle green block detection
+    BotInRotation = true;
+    ServoRotation(LeftServoRotation);
+    CurrentVelocity = DefaultVelocity;
+    MotorForward();
+  } else {
+         
+       ServoRotation(CenterServoRotation);
+       BotInRotation = false;
+       CurrentVelocity = DefaultVelocity;
+       MotorForward();
+
+  }
+
+   if (YellowPreviuosDetected == true && YellowLineDetected == false ) {
+    YellowLinePassed = YellowLinePassed +1;
+  }
+
+  if (BlueLineDetected == true && YellowPreviuosDetected == true) {
+      ServoRotation(CenterServoRotation);
+       BotInRotation = false;
+       CurrentVelocity = DefaultVelocity;
+       MotorForward();
+       YellowPreviuosDetected = false;
+  }
+
+  if (FrontDistance < 30 && FrontDistance > 20) {
+    CurrentVelocity = 80;
+    ObjectInFront = true;
+    MotorForward();
+  else if (FrontDistance <20 && FrontDistance > 10) {
+      CurrentVelocity = 60;
+      ObjectInFront = true;
+      MotorForward();
+      else if (FrontDistance < 5) {
+        CurrentVelocity = 70;
+        ObjectInFront = true;
+        MotorBackward()
+      }
+    }
+  }
+
+  if (FrontDistance < 20 && ObjectInFront == true) {
+    if (LeftDistance > RightDistance) {
+      AcumuledAngle = (AcumuledAngle + 10);
+      ServoRotation(AcumuledAngle);
+    else if (RightDistance > LeftDistance) {
+        AcumuledAngle = (AcumuledAngle - 10);
+        ServoRotation(AcumuledAngle);
+      }
+    }
+  } else if (FrontDistance > 20 && ObjectInFront == true) {
+    AcumuledAngle = CenterServoRotation;
+  }
+
+  if (MaxYellowToDetect == YellowLinePassed) {
+      if (EnableObstacleChallenge == true) {
+      else {
+            MotorForward();
+            delay(800);
+            BotStopped = true;
+
+
+
+        }
+      }
+
+  } else if (YellowLinePassed == 7 && EnableObstacleChallenge == true && ObstacleChangelleBotRotate == false) {
+    if (RedBlockDetected == true ) {
+      MotorForward()
+      delay(500)
+      CurrentVelocity  = 20;
+      MotorForward();
+      ServoRotation(180);
+      delay(200);
+      MotorBackward();
+      delay(200);
+      MotorForward();
+      ServoRotation(CenterServoRotation);
+      else if (GreenBlockDetected == true) {
+        ObstacleChangelleBotRotate = true;
+      }
+    }
+  } 
+
+  // Short delay
+  delay(100);
+ 
+  
+   
+
 }
+
