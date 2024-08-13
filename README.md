@@ -26,13 +26,13 @@ On the board arduino we connected our Servo Motor, the pixy cam and the 3 ultras
 
 We had to change the previous motor due to its energy consumption and weight, and we also changed the 4 batteries in series that we used for a rechargeable lipo battery
 
-The entire design of the motor gears had to be rebuilt since a differential was used
+The entire design of the motor gears had to be rebuilt since a differential was used.
 
-The size of the wheels was reduced to be able to fit the ultrasonics
+The size of the wheels was reduced to be able to fit the ultrasonics.
 
-The acrylic base broke and had to be glued with a metal sheet
+The acrylic base broke and had to be glued with a metal sheet.
 
-We almost burned the new motor, with the new battery in one of the tests
+We almost burned the new motor, with the new battery in one of the tests.
 
 ### 3. **Motivation**
 The motivation for participating in WRO 2024 was clear and exciting: to experience the robotics competition for the first time and to represent our school in the future engineers category. We want to establish a solid foundation for future participants of our institution, inspiring young people to get involved in robotics and to promote its implementation in Panama.
