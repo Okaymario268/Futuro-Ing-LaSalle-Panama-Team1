@@ -1,6 +1,6 @@
 Hello, here we gonna upload all the code that we made for the Future Enginner 2024 of the Team #1 of the Colegio De La Salle
 
-**Materials**
+###**Materials**
   - Pixy Cam2
   - Protoboard
   - Btn7960
@@ -22,7 +22,7 @@ In the Btn7960 8 cables were connected to the ports, Vcc, Gnd, R_Irs, L _Irs, RP
 
 On the board arduino we connected our Servo Motor, the pixy cam and the 3 ultrasonics, each one to their respective ports.
 
-**Setbacks**
+###**Setbacks**
 
 We had to change the previous motor due to its energy consumption and weight, and we also changed the 4 batteries in series that we used for a rechargeable lipo battery
 
@@ -34,10 +34,10 @@ The acrylic base broke and had to be glued with a metal sheet
 
 We almost burned the new motor, with the new battery in one of the tests
 
-**Motivation**
+###**Motivation**
 The motivation for participating in WRO 2024 was clear and exciting: to experience the robotics competition for the first time and to represent our school in the future engineers category. We want to establish a solid foundation for future participants of our institution, inspiring young people to get involved in robotics and to promote its implementation in Panama.
 
-**Code Explanation**
+###**Code Explanation**
 
 In the first lines of the code, we import the arduino libraries that we will use in addition to defining all the pins of the electronic components, outside of void setup(), then in this function we will initialize the components and reset all the variables used
 
@@ -49,7 +49,7 @@ In such case that nothing is detected with the camera, the ultrasonics will be u
 
 In each successful turn that the robot makes, this will accumulate up to 12 to be able to start the automatic shutdown and thus end the round
   
-**Mobility Management**
+### **Mobility Management**
 
 ### 1. **Motor Selection and Implementation**
    - **DC Motor 775 vs. 715:**
@@ -81,16 +81,3 @@ In each successful turn that the robot makes, this will accumulate up to 12 to b
      - **Mounting of Components:**
        - The motors, gears, and other components were strategically mounted to minimize weight distribution issues. The 775 motor was placed centrally to balance the vehicle's weight, while the servo motor was positioned to optimize steering control.
 
-### 4. **Engineering Principles**
-   - **Torque and Speed:**
-     - The 775 motor's high torque and speed make it ideal for rapid movements, but this required careful management through the gear system to prevent the vehicle from being too fast or unstable.
-   - **Power Consumption:**
-     - The high power requirements of the 775 motor necessitate a robust power supply, which was factored into the overall design. Conversely, the servo motor's lower power needs make it efficient for precise control tasks.
-   - **Cooling and Overheating:**
-     - The built-in ventilation of the 775 motor addresses the risk of overheating, a common issue with high-performance motors, ensuring reliable operation under load.
-
-### 5. **Assembly Instructions and 3D CAD Files**
-   - **Building Process:**
-     - Detailed step-by-step assembly instructions should be provided, including how to mount the motors, attach the gears, and secure all components to the chassis.
-   - **3D CAD Files:**
-     - The design files for any custom parts, such as motor mounts or gear systems, can be included to facilitate 3D printing, ensuring that all parts fit together perfectly in the final assembly.
