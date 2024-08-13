@@ -66,7 +66,7 @@ In each successful turn that the robot makes, this will accumulate up to 12 to b
    - **DC Motor 715:**
      - Although the 715 motor is more compact and fits easily within the vehicle, it was not chosen due to its lower torque, susceptibility to overheating, and fragility under high voltage. However, it remains a viable option for projects where space and power efficiency are more critical than raw performance.
 
-### 5. **Implementation of Gear Systems**
+### 7. **Implementation of Gear Systems**
    - **DC Motor 775:**
      - To convert the motor's high speed and torque into controlled movement, a gear system was implemented. A gear was attached to the motor shaft, meshing with another gear connected to the vehicle's wheels. This gear reduction system helps manage the speed and torque more effectively, ensuring smooth and efficient movement.
      - **Mounting Considerations:** Given the motor's weight, a sturdy mounting solution was necessary. A durable strap ("Suncho") was used to secure the motor to the chassis, preventing it from adding unnecessary weight while ensuring a firm attachment.
@@ -75,7 +75,7 @@ In each successful turn that the robot makes, this will accumulate up to 12 to b
      - **Selection Criteria:** The 996R servo was chosen for its ability to handle significant loads, making it ideal for steering and other precise movements.
      - **Gear System Integration:** Similar to the DC motor, a gear was attached to the servo shaft, with another gear on the wheels. This setup allows for accurate control over the vehicle's direction and turning radius.
 
-### 6. **Chassis Design and Component Mounting**
+### 8. **Chassis Design and Component Mounting**
    - **Chassis Selection:**
      - The chassis was selected to balance strength and weight, accommodating the heavier 775 motor while leaving enough room for other components. Its design allows for easy attachment of the motors and gear systems, while providing structural integrity.
      - **Mounting of Components:**
