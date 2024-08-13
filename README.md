@@ -34,10 +34,10 @@ The acrylic base broke and had to be glued with a metal sheet
 
 We almost burned the new motor, with the new battery in one of the tests
 
-###**Motivation**
+### 1. **Motivation**
 The motivation for participating in WRO 2024 was clear and exciting: to experience the robotics competition for the first time and to represent our school in the future engineers category. We want to establish a solid foundation for future participants of our institution, inspiring young people to get involved in robotics and to promote its implementation in Panama.
 
-###**Code Explanation**
+### 2. **Code Explanation**
 
 In the first lines of the code, we import the arduino libraries that we will use in addition to defining all the pins of the electronic components, outside of void setup(), then in this function we will initialize the components and reset all the variables used
 
@@ -49,9 +49,9 @@ In such case that nothing is detected with the camera, the ultrasonics will be u
 
 In each successful turn that the robot makes, this will accumulate up to 12 to be able to start the automatic shutdown and thus end the round
   
-### **Mobility Management**
+### 3. **Mobility Management**
 
-### 1. **Motor Selection and Implementation**
+### 4. **Motor Selection and Implementation**
    - **DC Motor 775 vs. 715:**
      - **Selection Process:**
        - The decision between the DC Motor 775 and the DC Motor 715 was based on the space constraints and performance requirements of the robot. Given the limited space, the 775 motor was chosen for its superior torque and speed capabilities.
@@ -66,7 +66,7 @@ In each successful turn that the robot makes, this will accumulate up to 12 to b
    - **DC Motor 715:**
      - Although the 715 motor is more compact and fits easily within the vehicle, it was not chosen due to its lower torque, susceptibility to overheating, and fragility under high voltage. However, it remains a viable option for projects where space and power efficiency are more critical than raw performance.
 
-### 2. **Implementation of Gear Systems**
+### 5. **Implementation of Gear Systems**
    - **DC Motor 775:**
      - To convert the motor's high speed and torque into controlled movement, a gear system was implemented. A gear was attached to the motor shaft, meshing with another gear connected to the vehicle's wheels. This gear reduction system helps manage the speed and torque more effectively, ensuring smooth and efficient movement.
      - **Mounting Considerations:** Given the motor's weight, a sturdy mounting solution was necessary. A durable strap ("Suncho") was used to secure the motor to the chassis, preventing it from adding unnecessary weight while ensuring a firm attachment.
@@ -75,7 +75,7 @@ In each successful turn that the robot makes, this will accumulate up to 12 to b
      - **Selection Criteria:** The 996R servo was chosen for its ability to handle significant loads, making it ideal for steering and other precise movements.
      - **Gear System Integration:** Similar to the DC motor, a gear was attached to the servo shaft, with another gear on the wheels. This setup allows for accurate control over the vehicle's direction and turning radius.
 
-### 3. **Chassis Design and Component Mounting**
+### 6. **Chassis Design and Component Mounting**
    - **Chassis Selection:**
      - The chassis was selected to balance strength and weight, accommodating the heavier 775 motor while leaving enough room for other components. Its design allows for easy attachment of the motors and gear systems, while providing structural integrity.
      - **Mounting of Components:**
